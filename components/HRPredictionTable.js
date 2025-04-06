@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import teamIdToAbbr from "./teamIdToAbbreviation";
 
 export default function HRPredictionTable() {
   const [players, setPlayers] = useState([]);
@@ -21,33 +22,36 @@ export default function HRPredictionTable() {
         const statMatch = statcastData.data.find(
           p => p.name.toLowerCase() === player.name.toLowerCase()
         );
-
+      
         const parkInfo = weatherData.data.find(w =>
           w.stadium.toLowerCase().includes(player.stadium?.toLowerCase() || '')
         );
-
+      
         const tempBoost = parkInfo?.temp > 75 ? 1.05 : 1;
         const windBoost = parkInfo?.wind > 10 ? 1.1 : 1;
         const parkFactor = parkInfo?.factor || 1;
-
+      
         const baseScore = statMatch
           ? (statMatch.avgEV * 0.4 + statMatch.avgLA * 0.2 + statMatch.barrels * 10 + player.HR * 0.4)
           : player.HR * 0.5;
-
+      
         const totalScore = baseScore * tempBoost * windBoost * parkFactor;
-
+      
+        const teamAbbr = teamIdToAbbr[player.team] || "mlb";
+      
         return {
           name: player.name,
-          team: player.team,
+          team: teamAbbr.toUpperCase(),
           HR: player.HR,
           AB: player.AB,
-          avgEV: statMatch?.avgEV || '-',
-          avgLA: statMatch?.avgLA || '-',
-          barrels: statMatch?.barrels || '-',
+          avgEV: statMatch?.avgEV || "-",
+          avgLA: statMatch?.avgLA || "-",
+          barrels: statMatch?.barrels || "-",
           score: Math.round(totalScore * 10) / 10,
-          logo: `https://a.espncdn.com/i/teamlogos/mlb/500/${player.team}.png`
+          logo: `https://a.espncdn.com/i/teamlogos/mlb/500/${teamAbbr}.png`
         };
       });
+      
 
       setPlayers(combined.sort((a, b) => b.score - a.score));
     } catch (err) {
