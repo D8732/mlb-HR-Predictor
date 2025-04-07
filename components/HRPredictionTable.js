@@ -7,38 +7,45 @@ export default function HRPredictionTable() {
 
   const fetchData = async () => {
     setLoading(true);
+  
     try {
+      console.log("Fetching live player + statcast + weather data...");
+  
       const [lineupsRes, statcastRes, weatherRes] = await Promise.all([
         fetch('/api/getLineupsAndHR'),
         fetch('/api/getStatcastMetrics'),
         fetch('/api/getWeatherAndParks')
       ]);
-
+  
       const lineupsData = await lineupsRes.json();
       const statcastData = await statcastRes.json();
       const weatherData = await weatherRes.json();
-
+  
+      console.log("Lineups data:", lineupsData);
+      console.log("Statcast data:", statcastData);
+      console.log("Weather data:", weatherData);
+  
       const combined = lineupsData.players.map(player => {
         const statMatch = statcastData.data.find(
           p => p.name.toLowerCase() === player.name.toLowerCase()
         );
-      
+  
         const parkInfo = weatherData.data.find(w =>
           w.stadium.toLowerCase().includes(player.stadium?.toLowerCase() || '')
         );
-      
+  
         const tempBoost = parkInfo?.temp > 75 ? 1.05 : 1;
         const windBoost = parkInfo?.wind > 10 ? 1.1 : 1;
         const parkFactor = parkInfo?.factor || 1;
-      
+  
         const baseScore = statMatch
           ? (statMatch.avgEV * 0.4 + statMatch.avgLA * 0.2 + statMatch.barrels * 10 + player.HR * 0.4)
           : player.HR * 0.5;
-      
+  
         const totalScore = baseScore * tempBoost * windBoost * parkFactor;
-      
+  
         const teamAbbr = teamIdToAbbr[player.team] || "mlb";
-      
+  
         return {
           name: player.name,
           team: teamAbbr.toUpperCase(),
@@ -51,18 +58,20 @@ export default function HRPredictionTable() {
           logo: `https://a.espncdn.com/i/teamlogos/mlb/500/${teamAbbr}.png`
         };
       });
-      
-
+       console.log("Combined players:", combined);
       setPlayers(combined.sort((a, b) => b.score - a.score));
     } catch (err) {
-      console.error('Error loading data:', err);
+      console.error("Error loading data:", err);
     } finally {
       setLoading(false);
     }
   };
+  
+    }
 
   useEffect(() => {
-    fetchData();
+    fetchData(
+  );
   }, []);
 
   return (
@@ -108,4 +117,4 @@ export default function HRPredictionTable() {
       </div>
     </div>
   );
-}
+
