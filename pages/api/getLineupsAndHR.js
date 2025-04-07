@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     let players = [];
 
     for (const gamePk of gameIds) {
-      const gameRes = await fetch(\`https://statsapi.mlb.com/api/v1.1/game/\${gamePk}/feed/live\`);
+      const gameRes = await fetch(`https://statsapi.mlb.com/api/v1.1/game/\${gamePk}/feed/live`);
       const gameData = await gameRes.json();
 
       const home = gameData.liveData?.boxscore?.teams?.home || {};
