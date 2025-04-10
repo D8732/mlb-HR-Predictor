@@ -90,7 +90,8 @@ export default function HRPredictionTable() {
           </thead>
           <tbody>
             {players.map((p, idx) => (
-              <tr key={idx} className={\`border-t \${idx < 10 ? 'bg-yellow-100 font-bold' : ''}\`}>
+              <tr key={idx} className={`border-t ${idx < 10 ? 'bg-yellow-100 font-bold' : ''}`}>
+
                 <td className="p-2">{idx + 1}</td>
                 <td className="p-2">{p.name}</td>
                 <td className="p-2">
