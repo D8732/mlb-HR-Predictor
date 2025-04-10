@@ -8,6 +8,5 @@ export default function handler(req, res) {
     { name: "Pete Alonso", avgEV: 92.9, avgLA: 19.4, barrels: 12.2 }
   ];
 
-  console.log("Sending Statcast metrics for known players");
   res.status(200).json({ data });
 }
