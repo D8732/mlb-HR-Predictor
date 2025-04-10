@@ -1,8 +1,8 @@
-
 // pages/api/getLineupsAndHR.js
 export default async function handler(req, res) {
   try {
-    const scheduleRes = await fetch('https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=' + new Date().toISOString().split('T')[0]);
+    const today = new Date().toISOString().split('T')[0];
+    const scheduleRes = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${today}`);
     const scheduleData = await scheduleRes.json();
 
     const gameIds = scheduleData.dates[0]?.games?.map(game => game.gamePk) || [];
@@ -10,30 +10,35 @@ export default async function handler(req, res) {
     let players = [];
 
     for (const gamePk of gameIds) {
-      const gameRes = await fetch(`https://statsapi.mlb.com/api/v1.1/game/\${gamePk}/feed/live`);
+      const gameRes = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
       const gameData = await gameRes.json();
 
       const home = gameData.liveData?.boxscore?.teams?.home || {};
       const away = gameData.liveData?.boxscore?.teams?.away || {};
 
-      const extractPlayers = (team, side) =>
-        (team.battingOrder || []).map(playerId => {
+      const extractPlayers = (team, teamType) => {
+        if (!team.battingOrder || team.battingOrder.length === 0) {
+          console.warn(`No battingOrder found for ${teamType} team in game ${gamePk}`);
+          return [];
+        }
+        return team.battingOrder.map(playerId => {
           const player = team.players?.[playerId];
           return {
             name: player?.person?.fullName || "Unknown",
             team: team.team?.id || 0,
-            HR: 0, // Placeholder until HRs are fetched or tracked
+            HR: 0,
             AB: 0,
             stadium: gameData.gameData?.venue?.name || "Unknown"
           };
         });
+      };
 
-      players.push(...extractPlayers(home, 'home'));
-      players.push(...extractPlayers(away, 'away'));
+      players.push(...extractPlayers(home, "home"));
+      players.push(...extractPlayers(away, "away"));
     }
 
     if (!players.length) {
-      // Fallback mock data if no games or lineups
+      console.warn("No real players found — using fallback mock data.");
       players = [
         { name: "Aaron Judge", HR: 1, AB: 3, team: 147, stadium: "Yankee Stadium" },
         { name: "Juan Soto", HR: 0, AB: 4, team: 147, stadium: "Yankee Stadium" },
