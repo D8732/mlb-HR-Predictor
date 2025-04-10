@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
-import teamNameToAbbr from './teamNameToAbbr'
+import teamNameToAbbr from './teamNameToAbbr';
 
 export default function HRPredictionTable() {
   const [players, setPlayers] = useState([]);
@@ -9,8 +10,6 @@ export default function HRPredictionTable() {
     setLoading(true);
 
     try {
-      console.log("Fetching live player + statcast + weather data...");
-
       const [lineupsRes, statcastRes, weatherRes] = await Promise.all([
         fetch('/api/getLineupsAndHR'),
         fetch('/api/getStatcastMetrics'),
@@ -20,10 +19,6 @@ export default function HRPredictionTable() {
       const lineupsData = await lineupsRes.json();
       const statcastData = await statcastRes.json();
       const weatherData = await weatherRes.json();
-
-      console.log("Lineups data:", lineupsData);
-      console.log("Statcast data:", statcastData);
-      console.log("Weather data:", weatherData);
 
       const combined = lineupsData.players.map(player => {
         const statMatch = statcastData.data.find(
@@ -37,15 +32,15 @@ export default function HRPredictionTable() {
         const tempBoost = parkInfo?.temp > 75 ? 1.05 : 1;
         const windBoost = parkInfo?.wind > 10 ? 1.1 : 1;
         const parkFactor = parkInfo?.factor || 1;
+        const darkHorseBoost = player.HR < 5 ? 1.2 : 1;
 
         const baseScore = statMatch
           ? (statMatch.avgEV * 0.4 + statMatch.avgLA * 0.2 + statMatch.barrels * 10 + player.HR * 0.4)
           : player.HR * 0.5;
 
-        const totalScore = baseScore * tempBoost * windBoost * parkFactor;
+        const totalScore = baseScore * tempBoost * windBoost * parkFactor * darkHorseBoost;
 
         const teamAbbr = teamNameToAbbr[player.teamName] || "mlb";
-
 
         return {
           name: player.name,
@@ -60,7 +55,6 @@ export default function HRPredictionTable() {
         };
       });
 
-      console.log("Combined players:", combined);
       setPlayers(combined.sort((a, b) => b.score - a.score));
     } catch (err) {
       console.error("Error loading data:", err);
@@ -75,7 +69,7 @@ export default function HRPredictionTable() {
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-center">Today's HR Potential Rankings</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">Longshot Bomb Watch 💣</h1>
       <button onClick={fetchData} disabled={loading} className="mb-4 px-4 py-2 bg-blue-600 text-white rounded">
         {loading ? 'Loading...' : 'Refresh Rankings'}
       </button>
@@ -95,28 +89,22 @@ export default function HRPredictionTable() {
             </tr>
           </thead>
           <tbody>
-            {players.length === 0 ? (
-              <tr>
-                <td colSpan="9" className="text-center p-4">No data available. Try refreshing.</td>
+            {players.map((p, idx) => (
+              <tr key={idx} className={\`border-t \${idx < 10 ? 'bg-yellow-100 font-bold' : ''}\`}>
+                <td className="p-2">{idx + 1}</td>
+                <td className="p-2">{p.name}</td>
+                <td className="p-2">
+                  <img src={p.logo} alt={p.team} className="w-6 h-6 inline mr-2 align-middle" />
+                  {p.team}
+                </td>
+                <td className="p-2">{p.HR}</td>
+                <td className="p-2">{p.AB}</td>
+                <td className="p-2">{p.avgEV}</td>
+                <td className="p-2">{p.avgLA}</td>
+                <td className="p-2">{p.barrels}</td>
+                <td className="p-2 font-semibold">{p.score}</td>
               </tr>
-            ) : (
-              players.map((p, idx) => (
-                <tr key={idx} className={`border-t ${idx < 10 ? 'bg-yellow-100 font-bold' : ''}`}>
-                  <td className="p-2">{idx + 1}</td>
-                  <td className="p-2">{p.name}</td>
-                  <td className="p-2">
-                    <img src={p.logo} alt={p.team} className="w-6 h-6 inline mr-2 align-middle" />
-                    {p.team}
-                  </td>
-                  <td className="p-2">{p.HR}</td>
-                  <td className="p-2">{p.AB}</td>
-                  <td className="p-2">{p.avgEV}</td>
-                  <td className="p-2">{p.avgLA}</td>
-                  <td className="p-2">{p.barrels}</td>
-                  <td className="p-2 font-semibold">{p.score}</td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
