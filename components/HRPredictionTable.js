@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import teamIdToAbbr from "./teamIdToAbbreviation";
+import teamNameToAbbr from './teamNameToAbbr'
 
 export default function HRPredictionTable() {
   const [players, setPlayers] = useState([]);
@@ -44,7 +44,8 @@ export default function HRPredictionTable() {
 
         const totalScore = baseScore * tempBoost * windBoost * parkFactor;
 
-        const teamAbbr = teamIdToAbbr[player.team] || "mlb";
+        const teamAbbr = teamNameToAbbr[player.teamName] || "mlb";
+
 
         return {
           name: player.name,

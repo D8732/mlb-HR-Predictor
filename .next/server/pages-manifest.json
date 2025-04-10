@@ -1,0 +1,11 @@
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/api/getLineupsAndHR": "pages/api/getLineupsAndHR.js",
+  "/api/getStatcastMetrics": "pages/api/getStatcastMetrics.js",
+  "/api/getTodaysMatchups": "pages/api/getTodaysMatchups.js",
+  "/api/getWeatherAndParks": "pages/api/getWeatherAndParks.js",
+  "/": "pages/index.html",
+  "/_document": "pages/_document.js",
+  "/404": "pages/404.html"
+}
